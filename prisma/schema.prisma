@@ -70,3 +70,9 @@ model Staff {
   Name String @db.VarChar(60)
   Bill Bill[]
 }
+
+model UserAccount {
+  id       String @id(map: "PK_UserAccount_ID") @default(dbgenerated("newid()"), map: "DF__UserAccount__id__59063A47") @db.UniqueIdentifier
+  username String @unique(map: "UQ_UserAccount_Username") @db.VarChar(255)
+  password String @db.VarChar(255)
+}

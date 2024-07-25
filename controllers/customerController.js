@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
+const { body, param, query, validationResult } = require("express-validator");
 const customerDAO = require("../models/DAO/customerDAO");
 const { CustomerDTO } = require("../models/DTO/CustomerDTO");
-const { body, param, query, validationResult } = require("express-validator");
 
 // @desc    Get all customers
 // @route   GET /api/customers
