@@ -9,7 +9,13 @@ exports.getUserAccount = asyncHandler(async (username, password) => {
       username: username,
       password: password,
     },
-  });
+  }).then(prisma.$disconnect());
+});
+
+exports.GetOneCustomerById = asyncHandler(async (id) => {
+  return await prisma.customer.findUnique({
+    where: { ID: id },
+  }).then(prisma.$disconnect());
 });
 
 // async function GetUserAccountById()

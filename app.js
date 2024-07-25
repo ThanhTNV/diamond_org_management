@@ -1,9 +1,14 @@
 var createError = require("http-errors");
+
 var express = require("express");
 var app = express();
+
 var path = require("path");
+
 var cookieParser = require("cookie-parser");
+
 var logger = require("morgan");
+
 const userAccountDAO = require("./models/DAO/userAccountDAO");
 const session = require("express-session");
 const passport = require("passport");
@@ -23,12 +28,15 @@ passport.use(
   new LocalStrategy(
     expressAsyncHandler(async (username, password, done) => {
       const user = await userAccountDAO.getUserAccount(username, password);
+      console.log(user);
 
-      if (!user) {
+      if (user === null) {
+        console.log("User not found");
         return done(null, false, {
           message: "Incorrect username or password",
         });
       }
+      console.log("User found");
       return done(null, user);
     })
   )
@@ -61,27 +69,22 @@ app.use("/", indexRouter);
 app.post(
   "/login",
   passport.authenticate("local", {
-    successRedirect: "/api",
-    failureRedirect: "/",
+    successRedirect: "/",
+    failureRedirect: "/login",
   })
 );
 // API ROUTES
 app.use(
   "/api",
-  passport.authenticate("local", {
-    successRedirect: "/api",
-    failureRedirect: "/",
-  }),
+  (req, res, next) => {
+    if (req.user) {
+      next();
+    } else {
+      res.redirect("/login");
+    }
+  },
   apiRouter
 );
-// app.get("logout", (req, res) => {
-//   req.logout((err) => {
-//     if (err) {
-//       return res.json({ message: "Logout failed" });
-//     }
-//   });
-//   res.json({ message: "Logout successful" });
-// });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

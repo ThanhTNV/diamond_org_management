@@ -76,3 +76,13 @@ model UserAccount {
   username String @unique(map: "UQ_UserAccount_Username") @db.VarChar(255)
   password String @db.VarChar(255)
 }
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B6116F24259") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}

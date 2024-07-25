@@ -3,5 +3,9 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
-  p Please log in to continue.
-  a(href="http://localhost:3000/login") Log In
+  if !user
+    p Please log in to continue.
+    a(href="http://localhost:3000/login") Log In
+  else
+    p Welcome, #{user.username}!
+    a(href="http://localhost:3000/logout") Log Out
