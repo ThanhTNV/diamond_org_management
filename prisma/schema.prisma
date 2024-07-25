@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Bill {
+  ID         Int          @id(map: "PK_Bill_ID")
+  OrderDate  Int
+  Status     Int
+  Address    String       @db.VarChar(50)
+  DiscID     Int?
+  StaffID    Int
+  CustID     Int
+  Customer   Customer     @relation(fields: [CustID], references: [ID], onUpdate: NoAction, map: "FK_Bill_CustID_Customer_ID")
+  Discount   Discount?    @relation(fields: [DiscID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "FK_Bill_DiscID_Discount_ID")
+  Staff      Staff        @relation(fields: [StaffID], references: [ID], onUpdate: NoAction, map: "FK_Bill_StaffID_Staff_ID")
+  BillDetail BillDetail[]
+}
+
+model BillDetail {
+  SEQ            String         @id(map: "PK_BillDetail_SEQ") @default(dbgenerated("newid()"), map: "DF__BillDetail__SEQ__45F365D3") @db.UniqueIdentifier
+  BillID         Int
+  ProductID      Int
+  Bill           Bill           @relation(fields: [BillID], references: [ID], onUpdate: NoAction, map: "FK_BillDetail_BillID_Bill_ID")
+  DiamondProduct DiamondProduct @relation(fields: [ProductID], references: [ID], onUpdate: NoAction, map: "FK_BillDetail_ProductID_DiamondProduct_ID")
+}
+
+model Customer {
+  ID        Int    @id(map: "PK_Customer_ID")
+  Phone     String @db.Char(10)
+  Point     Int
+  FirstName String @db.VarChar(30)
+  LastName  String @db.VarChar(30)
+  Bill      Bill[]
+}
+
+model Diamond {
+  Origin         String         @db.VarChar(1)
+  ID             Int            @id(map: "PK_Diamond_ID")
+  Shape          String         @db.VarChar(4)
+  Carat          Int
+  Color          String         @db.VarChar(10)
+  Clarity        String         @db.VarChar(5)
+  Cut            String         @db.VarChar(10)
+  ProductID      Int
+  DiamondProduct DiamondProduct @relation(fields: [ProductID], references: [ID], onUpdate: NoAction, map: "FK_Diamond_ProductID_DiamondProduct_ID")
+}
+
+model DiamondProduct {
+  ID         Int          @id(map: "PK_DiamondProduct_ID")
+  Price      Int
+  BillDetail BillDetail[]
+  Diamond    Diamond[]
+}
+
+model Discount {
+  ID          Int      @id(map: "PK_Discount_ID")
+  Value       Int
+  Status      String   @db.Char(2)
+  ExpiredDate DateTime @db.Date
+  Bill        Bill[]
+}
+
+model Staff {
+  ID   Int    @id(map: "PK_Staff_ID")
+  Name String @db.VarChar(60)
+  Bill Bill[]
+}
