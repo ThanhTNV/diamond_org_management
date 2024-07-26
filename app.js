@@ -1,55 +1,32 @@
+// This file is the main entry point for the application
 var createError = require("http-errors");
-
+// Express import
 var express = require("express");
 var app = express();
-
+// Path import
 var path = require("path");
-
+// Cookie parser import
 var cookieParser = require("cookie-parser");
-
+// Logger import
 var logger = require("morgan");
-
-const userAccountDAO = require("./models/DAO/userAccountDAO");
+// Passport authenticater import
 const session = require("express-session");
 const passport = require("passport");
-const expressAsyncHandler = require("express-async-handler");
-const LocalStrategy = require("passport-local").Strategy;
+const authenticater = require("./middlewares/authentication");
 
 // Route imports
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
 const apiRouter = require("./routes/api");
+const adminRouter = require("./routes/admin");
 
 // Passport setup
 app.use(session({ secret: "cats", resave: false, saveUninitialized: false }));
 app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
-passport.use(
-  new LocalStrategy(
-    expressAsyncHandler(async (username, password, done) => {
-      const user = await userAccountDAO.getUserAccount(username, password);
-      console.log(user);
-
-      if (user === null) {
-        console.log("User not found");
-        return done(null, false, {
-          message: "Incorrect username or password",
-        });
-      }
-      console.log("User found");
-      return done(null, user);
-    })
-  )
-);
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-passport.deserializeUser(
-  expressAsyncHandler(async (id, done) => {
-    const user = await userAccountDAO.getUserAccountById(id);
-    done(null, user);
-  })
-);
+// Passport authenticater setup
+passport.use(authenticater.localStrategy);
+passport.serializeUser(authenticater.serializeUser);
+passport.deserializeUser(authenticater.deserializeUser);
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -84,6 +61,21 @@ app.use(
     }
   },
   apiRouter
+);
+
+// ADMIN ROUTES
+app.use(
+  "/admin",
+  (req, res, next) => {
+    if (!req.user) {
+      res.json({ message: "No permission", status: 400 });
+    }
+    if (!req.user.username.includes("admin")) {
+      res.json({ message: "No permission", status: 400 });
+    }
+    next();
+  },
+  adminRouter
 );
 
 // catch 404 and forward to error handler
